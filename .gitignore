@@ -1,0 +1,6 @@
+# Folders
+/node_modules
+
+# Files
+settings.json
+ecosystem.config.js

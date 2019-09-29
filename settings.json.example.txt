@@ -1,0 +1,8 @@
+{
+    "interval":24,
+    "accounts": [
+        {"name": "account1", "posting":"ACCOUNT1_PRIVATE_POSTING_KEY_HERE" },
+        {"name": "account2", "posting":"ACCOUNT1_PRIVATE_POSTING_KEY_HERE" },
+        {"name": "account3", "posting":"ACCOUNT1_PRIVATE_POSTING_KEY_HERE" }
+    ]
+}
