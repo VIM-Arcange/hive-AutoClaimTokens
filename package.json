@@ -1,7 +1,7 @@
 {
-  "name": "steem-AutoCreateTokens",
+  "name": "hive-AutoCreateTokens",
   "version": "1.0.0",
-  "description": "Automatically claim steem-engine token rewards",
+  "description": "Automatically claim hive-engine token rewards",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.0",
-    "dsteem": "^0.10.1"
+    "@hivechain/dhive": "^0.13.4"
   },
   "devDependencies": {
     "eslint": "^5.7.0",

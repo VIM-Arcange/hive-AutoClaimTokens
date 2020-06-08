@@ -1,15 +1,15 @@
-# steem-AutoClaimTokens
+# hive-AutoClaimTokens
 Automatically claim any available token rewards
 
 This app is built to regularly check your available rewards and claim them.
-You can manage multiple Steem accounts (see settings.json.example)
+You can manage multiple Hive accounts (see settings.json.example)
 
 ### How to Use
 
 - Clone this repository
 - Make sure you have latest LTS or greater version of Node JS installed
 - Go inside the cloned folder and type `npm install`
-- Rename `.settings.json.example` to `settings.json` and add your Steem account name(s) and private posting key(s)
+- Rename `.settings.json.example` to `settings.json` and add your Hive account name(s) and private posting key(s)
 - To start the app, type `npm start`
 
 By default, your available token rewards will be claimed once a day.
@@ -25,7 +25,7 @@ When you are done start the bot with following command.
 
 ### Technologies
 - Node JS
-- dSteem
+- dhive
 
 ### Contributing
 

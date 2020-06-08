@@ -1,17 +1,38 @@
-const { Client, PrivateKey, Asset } = require('dsteem');
-const fs = require('fs');
-const axios = require('axios');
+const { Client, PrivateKey, Asset } = require('@hivechain/dhive')
+const fs = require('fs')
+const axios = require('axios')
 
-const client = new Client('https://api.steemit.com');
+const client = new Client('https://api.hive.blog');
 const config = JSON.parse(fs.readFileSync('settings.json'))
 
-const log = (message) => {
-  console.log(`${new Date().toString()} - ${message}`);
-};
+const bDebug = process.env.DEBUG==="true"
+
+const msSecond = 1 * 1000
+const msMinute = 60 * msSecond
+const msHour = 60 * msMinute
+
+const second = 1
+const minute = 60 * second
+const hour = 60 * minute
+
+function datetoISO(date) {
+  return date.toISOString().replace(/T|Z/g," ")
+}
+
+function log(message) {
+  console.log(`${datetoISO(new Date())} - ${message}`);
+}
+
+function logerror(message, info="") {
+  console.error(`${datetoISO(new Date())} - ${message}`);
+  if(!bDebug) {
+    notify(`[hive-ACR] ${message}`, info)
+  }
+}
 
 async function get_pending_tokens(account) {
   const pending = []
-  const tokens = (await axios.get(`https://scot-api.steem-engine.com/@${account}`)).data
+  const tokens = (await axios.get(`https://scot-api.steem-engine.com/@${account}?hive=1`)).data
   if(tokens) {
     for (const symbol in tokens) {
       if (tokens[symbol].pending_token > 0) {
@@ -22,7 +43,7 @@ async function get_pending_tokens(account) {
   return pending
 }
 
-function process() {
+function service() {
   try {
     config.accounts.forEach(async account => {
       const pending_tokens = await get_pending_tokens(account.name)
@@ -38,7 +59,7 @@ function process() {
           },
         ]
   
-        client.broadcast.sendOperations([op], PrivateKey.from(account.posting))
+        client.broadcast.sendOperations([op], PrivateKey.from(account.keyPosting))
         .then(res => {
           //console.log(res)
           log(`${account.name} claimed ${pending_tokens.map(x => x.symbol)}`)
@@ -52,11 +73,14 @@ function process() {
 }
 
 (async () => {
-  log("Process Started ")
-  console.log(`users: ${config.accounts.map(o => o.name)}`)
-  console.log(`Interval: ${config.interval.toString()} hour(s)`)
-  process();
-
-  // Running `startProcessing` function every hour
-  setInterval(startProcessing, config.interval * 60 * 60 * 1000);
+  if(bDebug) {
+    log("Debug Started ")
+    service()
+  } else {
+    log("Service Started ")
+    log(`Interval: ${config.interval.toString()} hour(s)`)
+    log(`users: ${config.accounts.map(o => o.name)}`)
+    service();
+    setInterval(service, config.interval * msHour)
+  }
 })();
