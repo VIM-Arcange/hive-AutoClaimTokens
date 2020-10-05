@@ -1,9 +1,16 @@
-const { Client, PrivateKey, Asset } = require('@hivechain/dhive')
+const { Client, PrivateKey, Asset } = require('@hiveio/dhive')
 const fs = require('fs')
 const axios = require('axios')
 
-const client = new Client('https://api.hive.blog');
 const config = JSON.parse(fs.readFileSync('settings.json'))
+const hiveClient = new Client('https://api.hive.blog');
+hiveClient.database.getVersion().then((res) => {
+  //console.log("blockchain version",res.blockchain_version)
+  if (res.blockchain_version !== '0.23.0') {
+    hiveClient.updateOperations(true)
+  }
+})
+
 
 const bDebug = process.env.DEBUG==="true"
 
@@ -59,7 +66,7 @@ function service() {
           },
         ]
   
-        client.broadcast.sendOperations([op], PrivateKey.from(account.keyPosting))
+        hiveClient.broadcast.sendOperations([op], PrivateKey.from(account.keyPosting))
         .then(res => {
           //console.log(res)
           log(`${account.name} claimed ${pending_tokens.map(x => x.symbol)}`)
