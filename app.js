@@ -4,12 +4,6 @@ const axios = require('axios')
 
 const config = JSON.parse(fs.readFileSync('settings.json'))
 const hiveClient = new Client('https://api.hive.blog');
-// hiveClient.database.getVersion().then((res) => {
-//   //console.log("blockchain version",res.blockchain_version)
-//   if (res.blockchain_version !== '0.23.0') {
-//     hiveClient.updateOperations(true)
-//   }
-// })
 
 const bDebug = process.env.DEBUG==="true"
 
