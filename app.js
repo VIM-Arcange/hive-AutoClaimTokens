@@ -32,7 +32,7 @@ function logerror(message, info="") {
 
 async function get_pending_tokens(account) {
   const pending = []
-  const tokens = (await axios.get(`https://scot-api.steem-engine.com/@${account}?hive=1`)).data
+  const tokens = (await axios.get(`https://scot-api.hive-engine.com/@${account}`)).data
   if(tokens) {
     for (const symbol in tokens) {
       if (tokens[symbol].pending_token > 0) {
