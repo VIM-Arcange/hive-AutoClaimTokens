@@ -1,5 +1,5 @@
 {
-  "name": "hive-AutoCreateTokens",
+  "name": "hive-AutoClaimTokens",
   "version": "1.0.0",
   "description": "Automatically claim hive-engine token rewards",
   "main": "app.js",
@@ -9,7 +9,7 @@
   "author": "Arcange",
   "license": "MIT",
   "dependencies": {
-    "@hiveio/dhive": "^0.14.12",
+    "@hiveio/dhive": "^1.0.0",
     "axios": "^0.21.1"
   },
   "devDependencies": {
