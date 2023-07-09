@@ -52,10 +52,10 @@ async function get_pending_tokens(account) {
 async function getBalances(name) {
   const call = {
     id:1,
-    jsonrpc:"2.0", 
-    method:"find", 
-    params: 
-          { 
+    jsonrpc:"2.0",
+    method:"find",
+    params:
+          {
           contract: "tokens",
           table: "balances",
           query: {account: name},
@@ -67,10 +67,12 @@ async function getBalances(name) {
   return (await axios.post(heContracts, call)).data.result
 }
 
-function service() {
+async function service() {
   try {
-    config.accounts.forEach(async account => {
+    for(const account of config.accounts) {
+      const opsHE = [];
       const oKeys = keys.find(o => o.name == account.name)
+      const balances = await getBalances(account.name)
       const pending_tokens = await get_pending_tokens(account.name)
       if (pending_tokens.length > 0) {
         const op = [
@@ -82,7 +84,7 @@ function service() {
             json: JSON.stringify(pending_tokens),
           },
         ]
-  
+
         hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.posting))
         .then(res => {
           //console.log(res)
@@ -90,47 +92,56 @@ function service() {
         })
         .catch(err => log(err) )
       }
-      // if(account.transfer) {
-      //   let ops = 0
-      //   const balances = await getBalances(account.name)
-      //   balances.filter(o => o.balance > 0).forEach(async balance => {
-      //     const op = [ 
-      //       "custom_json",
-      //       {
-      //         required_auths: [],
-      //         required_posting_auths: [account.name],
-      //         id: "ssc-mainnet-hive",
-      //         json: JSON.stringify({
-      //           contractName: "tokens",
-      //           contractAction: "transfer",
-      //           contractPayload: {
-      //             symbol: balance.symbol,
-      //             to: account.transfer,
-      //             quantity: balance.balance,
-      //             memo: "",
-      //           },
-      //         })
-      //       }
-      //     ]
-      //     try {
-      //       const res = await hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.posting))
-      //       console.log(account.name, res)
-      //       // if(++ops>=5) {
-      //         const r2 = await sleep(3000)
-      //         console.log(account.name,"waited")
-      //       //   ops = 0
-      //       // }
-      //     } catch(e) {
-      //       console.log(e.message)
-      //     }
-      //     // ops.push(op)
-      //   })
-      //   // if(ops.length) {
-      //   //   const res = await hiveClient.broadcast.sendOperations(ops, PrivateKey.from(oKeys.posting))
-      //   //   console.log(res)
-      //   // }
-      // }
-    })
+      if(account.unstake) {
+        balances.filter(o => o.stake > 0 && o.pendingUnstake == 0).forEach(async balance => {
+          if(JSON.stringify(opsHE).length < 8000 && (!account.unstake.filter || !account.unstake.filter.includes(balance.symbol))) {
+            log(`${account.name} unstake ${balance.stake} ${balance.symbol}`)
+            opsHE.push({
+              contractName: "tokens",
+              contractAction: "unstake",
+              contractPayload: {
+                symbol: balance.symbol,
+                quantity: balance.stake.toString()
+              }
+            })
+          }
+        })
+      }
+      if(account.transfer) {
+        balances.filter(o => o.balance > 0).forEach(async balance => {
+          if(JSON.stringify(opsHE).length < 8000 && (!account.transfer.filter || !account.transfer.filter.includes(balance.symbol))) {
+            log(`${account.name} transfer ${balance.balance} ${balance.symbol} to ${account.transfer.to}`)
+            opsHE.push({
+              contractName: "tokens",
+              contractAction: "transfer",
+              contractPayload: {
+                symbol: balance.symbol,
+                to: account.transfer.to,
+                quantity: balance.balance.toString(),
+                memo: "",
+              }
+            })
+          }
+        })
+      }
+      if(opsHE.length) {
+        const op = [
+          "custom_json",
+          {
+            required_auths: [account.name],
+            required_posting_auths: [],
+            id: 'ssc-mainnet-hive',
+            json: JSON.stringify(opsHE)
+          }
+        ]
+        try {
+          const res = await hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.active))
+          log(`${account.name} broadcasted custom_json - txid: ${res.id}`)
+        } catch(e) {
+          console.log(e.message)
+        }
+      }
+    }
   } catch (e) {
     log(e.message);
   }
