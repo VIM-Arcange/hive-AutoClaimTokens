@@ -4,7 +4,7 @@ const axios = require('axios')
 const keys = require("../hive-keys")
 
 const config = JSON.parse(fs.readFileSync('settings.json'))
-const hiveClient = new Client('https://api.hive.blog');
+const hiveClient = new Client(['https://hive-api.arcange.eu','https://api.hive.blog']);
 const heContracts = "https://api.hive-engine.com/rpc/contracts"
 
 const bDebug = process.env.DEBUG==="true"
