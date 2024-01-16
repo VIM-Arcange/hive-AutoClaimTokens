@@ -109,7 +109,7 @@ async function service() {
       }
       if(account.transfer) {
         balances.filter(o => o.balance > 0).forEach(async balance => {
-          if(JSON.stringify(opsHE).length < 8000 && (!account.transfer.exclude || !account.transfer.exclude.includes(balance.symbol))) {
+          if(JSON.stringify(opsHE).length < 8000 && (!account.transfer.filter || !account.transfer.filter.includes(balance.symbol))) {
             log(`${account.name} transfer ${balance.balance} ${balance.symbol} to ${account.transfer.to}`)
             opsHE.push({
               contractName: "tokens",
