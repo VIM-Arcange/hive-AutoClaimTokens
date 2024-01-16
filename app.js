@@ -68,8 +68,8 @@ async function getBalances(name) {
 }
 
 async function service() {
-  try {
-    for(const account of config.accounts) {
+  for(const account of config.accounts) {
+    try {
       const opsHE = [];
       const oKeys = keys.find(o => o.name == account.name)
       const balances = await getBalances(account.name)
@@ -138,12 +138,13 @@ async function service() {
           const res = await hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.active))
           log(`${account.name} broadcasted custom_json - txid: ${res.id}`)
         } catch(e) {
-          console.log(e.message)
+          log(e.stack)
         }
       }
+    } catch (e) {
+      log(e.stack);
     }
-  } catch (e) {
-    log(e.message);
+    await sleep(2000) // wait a bit to avoid triggering HE node rate limiting
   }
 }
 
