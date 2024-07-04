@@ -145,12 +145,13 @@ async function service() {
           log(`${account.name} broadcasted custom_json - txid: ${res.id}`)
           await sleep(getRndInteger(3,9) * msSecond)
         } catch(e) {
-          logerror(e.message)
+          console.log(e.message)
         }
       }
+    } catch (e) {
+      log(e.stack);
     }
-  } catch (e) {
-    log(e.message);
+    await sleep(2000) // wait a bit to avoid triggering HE node rate limiting
   }
 }
 

@@ -9,8 +9,8 @@
   "author": "Arcange",
   "license": "MIT",
   "dependencies": {
-    "@hiveio/dhive": "^1.1.1",
-    "axios": "^0.21.4"
+    "@hiveio/dhive": "^1.2.8",
+    "axios": "^1.6.2"
   },
   "devDependencies": {
     "eslint-config-airbnb-base": "^14.2.1",
