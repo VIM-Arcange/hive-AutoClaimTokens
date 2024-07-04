@@ -3,8 +3,8 @@ const fs = require('fs')
 const axios = require('axios')
 const keys = require("../hive-keys")
 
-const config = JSON.parse(fs.readFileSync('settings.json'))
-const hiveClient = new Client(['https://hive-api.arcange.eu','https://api.hive.blog']);
+const settings = JSON.parse(fs.readFileSync('settings.json'))
+const hiveClient = new Client(settings.nodes);
 const heContracts = "https://api.hive-engine.com/rpc/contracts"
 
 const bDebug = process.env.DEBUG==="true"
@@ -16,6 +16,10 @@ const msHour = 60 * msMinute
 const second = 1
 const minute = 60 * second
 const hour = 60 * minute
+
+function getRndInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -69,7 +73,7 @@ async function getBalances(name) {
 
 async function service() {
   try {
-    for(const account of config.accounts) {
+    for(const account of settings.accounts) {
       const opsHE = [];
       const oKeys = keys.find(o => o.name == account.name)
       const balances = await getBalances(account.name)
@@ -85,16 +89,18 @@ async function service() {
           },
         ]
 
-        hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.posting))
-        .then(res => {
+        try {
+          const res = await hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.posting))
           //console.log(res)
           log(`${account.name} claimed ${pending_tokens.map(x => x.symbol)}`)
-        })
-        .catch(err => log(err) )
+          await sleep(getRndInteger(3,9) * msSecond)
+        } catch(e) {
+          logerror(e.message)
+        }
       }
       if(account.unstake) {
         balances.filter(o => o.stake > 0 && o.pendingUnstake == 0).forEach(async balance => {
-          if(JSON.stringify(opsHE).length < 8000 && (!account.unstake.filter || !account.unstake.filter.includes(balance.symbol))) {
+          if(JSON.stringify(opsHE).length < 8000 && (!account.unstake.exclude || !account.unstake.exclude.includes(balance.symbol))) {
             log(`${account.name} unstake ${balance.stake} ${balance.symbol}`)
             opsHE.push({
               contractName: "tokens",
@@ -109,7 +115,7 @@ async function service() {
       }
       if(account.transfer) {
         balances.filter(o => o.balance > 0).forEach(async balance => {
-          if(JSON.stringify(opsHE).length < 8000 && (!account.transfer.filter || !account.transfer.filter.includes(balance.symbol))) {
+          if(JSON.stringify(opsHE).length < 8000 && (!account.transfer.exclude || !account.transfer.exclude.includes(balance.symbol))) {
             log(`${account.name} transfer ${balance.balance} ${balance.symbol} to ${account.transfer.to}`)
             opsHE.push({
               contractName: "tokens",
@@ -137,8 +143,9 @@ async function service() {
         try {
           const res = await hiveClient.broadcast.sendOperations([op], PrivateKey.from(oKeys.active))
           log(`${account.name} broadcasted custom_json - txid: ${res.id}`)
+          await sleep(getRndInteger(3,9) * msSecond)
         } catch(e) {
-          console.log(e.message)
+          logerror(e.message)
         }
       }
     }
@@ -153,9 +160,9 @@ async function service() {
     service()
   } else {
     log("Service Started ")
-    log(`Interval: ${config.interval.toString()} hour(s)`)
-    log(`users: ${config.accounts.map(o => o.name)}`)
+    log(`Interval: ${settings.interval.toString()} hour(s)`)
+    log(`users: ${settings.accounts.map(o => o.name)}`)
     service();
-    setInterval(service, config.interval * msHour)
+    setInterval(service, settings.interval * msHour)
   }
 })();
