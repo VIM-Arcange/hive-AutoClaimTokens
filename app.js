@@ -148,11 +148,11 @@ async function service() {
           console.log(e.message)
         }
       }
-    } catch (e) {
-      log(e.stack);
     }
-    await sleep(2000) // wait a bit to avoid triggering HE node rate limiting
+  } catch (e) {
+    log(e.stack);
   }
+  await sleep(2000) // wait a bit to avoid triggering HE node rate limiting
 }
 
 (async () => {
